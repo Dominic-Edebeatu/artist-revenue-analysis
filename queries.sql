@@ -78,3 +78,42 @@ SELECT
     ) AS cumulative_pct
 FROM artist_revenue
 ORDER BY revenue DESC;
+
+
+/*
+Analyze the relationship between revenue generation (premium pricing)
+and popularity (units sold) across artists.
+*/
+
+-- Step 1: Aggregate revenue and units sold per artist
+-- Revenue is calculated as unit_price × quantity
+-- Units sold represent total quantity purchased
+WITH artist_revenue_unit AS (
+    SELECT 
+        a.artist_id,                             -- Unique artist identifier
+        a.name AS artist,                        -- Artist name
+        SUM(il.unit_price * il.quantity) AS revenue,   -- Total revenue per artist
+        SUM(il.quantity) AS units_sold           -- Total units sold per artist
+    FROM invoice_line il
+    INNER JOIN track t 
+        ON il.track_id = t.track_id              -- Connect sales to tracks
+    INNER JOIN album ab 
+        ON t.album_id = ab.album_id              -- Connect tracks to albums
+    INNER JOIN artist a 
+        ON ab.artist_id = a.artist_id            -- Connect albums to artists
+    GROUP BY a.artist_id, a.name
+)
+
+-- Step 2: Rank each artist by revenue and by units sold
+SELECT
+    artist,
+    revenue,
+    units_sold,
+
+    -- Rank artists by revenue (premium performance)
+    RANK() OVER (ORDER BY revenue DESC) AS revenue_ranking,
+
+    -- Rank artists by units sold (popularity)
+    RANK() OVER (ORDER BY units_sold DESC) AS units_sold_ranking
+FROM artist_revenue_unit
+ORDER BY revenue DESC;
