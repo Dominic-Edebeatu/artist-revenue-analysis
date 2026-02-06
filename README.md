@@ -1,5 +1,3 @@
-# artist-revenue-analysis
-SQL analysis of artist revenue using Chinook datasets
 # Artist Revenue Analysis (SQL)
 
 ## Business Question
